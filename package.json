@@ -29,6 +29,7 @@
     "webpack-merge": "^4.2.1"
   },
   "dependencies": {
+    "algebra.js": "^0.2.6",
     "babel-loader": "^8.0.5",
     "canvas2image": "^1.0.5",
     "hammerjs": "^2.0.8",

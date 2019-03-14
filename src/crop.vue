@@ -55,6 +55,42 @@
 
 <script>
   import Hammer from 'hammerjs'
+  import algebra from 'algebra.js'
+
+  const Fraction = algebra.Fraction
+  const Expression = algebra.Expression
+  const Equation = algebra.Equation
+
+  function calcEquation (point1, point2, point3, point4) {
+    let x, y, k1, k2, cp1, cp2
+
+    // 求出第一条直线的斜率
+    k1 = (point1.y - point2.y) / (point1.x - point2.x)
+    k2 = (point3.y - point4.y) / (point3.x - point4.x)
+
+    // 求直线1的中点
+    cp1 = {
+      y: (point1.y + point2.y) / 2,
+      x: (point1.x + point2.x) / 2
+    }
+
+    // 求直线2的中点
+    cp2 = {
+      y: (point4.y + point3.y) / 2,
+      x: (point4.x + point3.x) / 2
+    }
+
+    // 两条直线方程
+    let equation1 = algebra.parse(`${k1}x - ${k1} * ${cp1.x} + ${cp1.y}`)
+    let equation2 = algebra.parse(`${k2}x - ${k2} * ${cp2.x} + ${cp2.y}`)
+
+    let eq = new Equation(equation1, equation2)
+
+    x = eq.solveFor('x')
+    y = k1 * x - k1 * cp1.x + cp1.y
+
+    return { x, y }
+  }
 
   export default {
     name: 'Crop',
@@ -83,7 +119,10 @@
         newCanvasHeight: 0, // 截图的存放的canvas的高度
         type: 'none', // 操作类型  none 无  pan 手指移动  pinch 放大缩小
         isOpen: false,  // 是否显示截图界面
-        transformOrigin: '0 0',
+        transformOrigin: {
+          X: 0,
+          Y: 0
+        },
         minX: 0,  // 图片的范围限制
         maxX: 0,
         minY: 0,
@@ -114,7 +153,7 @@
           transform: `translate3d(${this.X}px, ${this.Y}px, 0)
           scale(${this.canvasScale})
           rotate(${this.canvasRotate}deg)`,
-          transformOrigin: this.transformOrigin
+          transformOrigin: `${this.transformOrigin.X}px ${this.transformOrigin.Y}px`
         }
       },
       T () {
@@ -127,6 +166,12 @@
           return 'horizontal'
         }
         return 'vertical'
+      },
+      longWidth () {
+        if (this.canvasCssWidth > this.canvasCssHeight) {
+          return this.canvasCssWidth
+      }
+        return this.canvasCssHeight
       }
       // canvasTopRight () {
       //   return {
@@ -276,70 +321,13 @@
         this.maxX = 0
         this.minY = this.width - this.canvasCssHeight
         this.maxY = 0
+
+        // 初始的旋转角度
+        this.transformOrigin.X = this.width / 2
+        this.transformOrigin.Y = this.height / 2
       },
       /** 限制坐标的范围，使图片始终保持在截图框内 */
       limitCoordinate () {
-        console.log('旋转角度', this.canvasRotate)
-        // let _y, _cssY, _x, _cssX
-        // switch(this.canvasRotate) {
-
-        //   case 0:
-        //     _cssY = this.canvasCssHeight
-        //     _cssX = this.canvasCssWidth
-        //     if (this.Y > 0) {
-        //       this.Y = 0
-        //     }
-
-        //     if (this.Y + _cssY < this.width) {
-        //       this.Y = this.width - _cssY
-        //     }
-
-        //     if (this.X > 0) {
-        //       this.X = 0
-        //     }
-
-        //     if (this.X + _cssX < this.width) {
-        //       this.X = this.width - _cssX
-        //     }
-        //     break
-        //   case 90:
-        //   case 270:
-        //     _cssY = this.canvasCssWidth
-        //     _cssX = this.canvasCssHeight - this.canvasOriginX
-        //     if (this.Y > Math.abs(this.canvasOriginX)) {
-        //       this.Y = Math.abs(this.canvasOriginX)
-        //     }
-        //     console.log(this.width + Math.abs(this.canvasOriginX) - this.canvasCssWidth)
-        //     if (this.Y < this.width + Math.abs(this.canvasOriginX) - this.canvasCssWidth) {
-        //       this.Y = this.width + Math.abs(this.canvasOriginX) - this.canvasCssWidth
-        //     }
-
-        //     if (this.X > this.canvasOriginX) {
-        //       this.X = this.canvasOriginX
-        //     }
-
-        //     if (this.X + _cssX < this.width) {
-        //       this.X = this.width - _cssX
-        //     }
-        //     break
-        //   case 180:
-        //     _cssY = this.canvasCssHeight
-        //     _cssX = this.canvasCssWidth
-        //     if (this.Y > this.canvasOriginX || this.Y < this.canvasOriginX) {
-        //       this.Y = this.canvasOriginX
-        //     }
-
-        //     if (this.X > 0) {
-        //       this.X = 0
-        //     }
-
-        //     if (this.X + _cssX < this.width) {
-        //       this.X = this.width - _cssX
-        //     }
-        //     break
-        //   default: break
-        // }
-
         // 让图片保持在可控范围内
         if (this.Y > this.maxY) this.Y = this.maxY
         if (this.Y < this.minY) this.Y = this.minY
@@ -366,101 +354,62 @@
       setRotateCenter () {
         switch(this.canvasRotate) {
           case 0:
-            this.transformOrigin = `${Math.abs(this.X) + this.width / 2}px
-            ${Math.abs(this.Y) + this.height / 2}px`
             break
           case 90:
-            // 横图或者竖图都没有问题
-            this.transformOrigin = `${Math.abs(this.X) + this.width / 2}px
-              ${Math.abs(this.Y) + this.height / 2}px`
-              break
+            break
           case 180:
-            if (this.direction === 'horizontal') {
-              this.transformOrigin = `${Math.abs(Math.abs(this.X) - Math.abs(this.Y)) + this.width / 2 + this.X}px ${this.width / 2 + this.Y}px`
-            }
             break
           case 270:
-            break
+            break 
         }
-      },
-      /** 设置图片可拖动范围 */
-      setLimit () {
-        switch(this.canvasRotate) {
-          case 0:
-            // this.transformOrigin = `${Math.abs(this.X) + this.width / 2}px
-            // ${Math.abs(this.Y) + this.height / 2}px`
-          case 90:
-            // 如果图片为横图
-            if (this.direction === 'horizontal') {
-              this.minY = Math.abs(this.X) + this.width - this.canvasCssWidth
-              this.maxY = Math.abs(this.X)
-              this.minX = this.X
-              this.maxX = this.X
+        if (this.X === 0) {
+          this.minX = this.maxX = 0
+          this.maxY = 0
+          this.minY = this.width - this.longWidth
+
+          // if (this.canvasRotate % 180 === 0 && this.canvasRotate % 360 !== 0) {
+          //   this.minX = 0
+          //   this.maxX = this.longWidth - this.width
+          // }
+
+          if (this.canvasRotate % 270 === 0) {
+            this.minY = 0
+            this.maxY = this.longWidth - this.width
+        }
             } else {
-              // 图片为竖图
-              this.minY = this.Y
-              this.maxY = this.Y
-              this.minX = Math.abs(this.Y) + this.width - this.canvasCssHeight
-              this.maxX = Math.abs(this.Y)
+          this.minY = this.maxY = 0
+          this.maxX = 0
+          this.minX = this.width - this.longWidth
+
+          if (this.canvasRotate && this.canvasRotate % 180 === 0) {
+            this.minX = 0
+            this.maxX = this.longWidth - this.width
             }
-            break
-          case 180:
-            // this.transformOrigin = `${Math.abs(this.X) + this.width / 2}px
-            //   ${Math.abs(this.Y) + this.height / 2}px`
-          case 270:
         }
       },
       /** 图片旋转 */
       rotate () {
-        
         // 旋转的时候需要确认旋转角度，旋转中心，图片可以拖动的限制范围 maxX minX maxY minY
         this.canvasRotate = (this.canvasRotate + 90) % 360
 
-        this.setRotateCenter() // 重新设置旋转中心
+        // this.setRotateCenter() // 重新设置旋转中心
+        let t = this.X
+        this.X = this.Y
+        this.Y = t
+
+        if (this.direction === 'vertical') { // 竖图
+          if (this.canvasRotate % 90 === 0) this.X = -this.X
+        } else {
+          if (this.canvasRotate % 180 === 0) this.X = -this.X
+        }
+
+
+
         this.setLimit()        // 重新设置图片拖拽的范围
-        // switch(this.canvasRotate) {
-        //   case 0:
-        //     this.transformOrigin = `${Math.abs(this.X) + this.width / 2}px
-        //     ${Math.abs(this.Y) + this.height / 2}px`
-        //   case 90:
-        //     // 横图或者竖图都没有问题
-        //     this.transformOrigin = `${Math.abs(this.X) + this.width / 2}px
-        //       ${Math.abs(this.Y) + this.height / 2}px`
-        //   case 180:
-        //   this.transformOrigin = `${Math.abs(this.X) + this.width / 2}px
-        //       ${Math.abs(this.Y) + this.height / 2}px`
-        //   case 270:
-        // }
+        this.canvasOriginX = this.X  // 原始的坐标
+        this.canvasOriginY = this.Y  // 原始的坐标
 
-        // 重新计算旋转中心
-        // this.transformOrigin = `${Math.abs(this.X) + this.width / 2}px
-        //   ${Math.abs(this.Y) + this.height / 2}px`
-        // this.canvasOriginX = this.X  // 原始的坐标
-        // this.canvasOriginY = this.Y  // 原始的坐标
-
-        this.addAnimate()
-
-        // 当旋转完了后，设置回旋转角度
-        // setTimeout(() => {
-        //   this.transformOrigin = `${this.width / 2}px ${this.height / 2}px`
-        // }, 500)
-        // 需要重新计算canvas坐标
-        // this.$nextTick(() => {
-
-
-        //   switch(this.canvasRotate) {
-        //     case 0:
-        //       this.canvasOriginY = 0
-        //       this.canvasOriginX = 0
-        //       break
-        //     default:
-
-        //   }
-        //   // if (this.canvasRotate)
-        //   // this.canvasOriginX
-        // })
-        // this.canvasContext.rotate(20 * Math.PI / 180)
-        // this.canvasContext.drawImage(this.image, 0, 0)
+        // this.addAnimate()
       },
       /** 画图 */
       drawImage (picPath) {
