@@ -350,41 +350,34 @@
         this.canvasScale = 1
         this.canvasRotate = 0
       },
-      /** 设置旋转中心 */
-      setRotateCenter () {
-        switch(this.canvasRotate) {
+      /** 设置拖拽范围 */
+      setLimit () {
+        let r = this.canvasRotate
+
+        if (this.direction === 'vertical') r = r + 90
+
+        switch(r) {
           case 0:
+          case 360:
+            this.maxX = 0
+            this.minX = this.width - this.longWidth
+            this.maxY = this.minY = 0
             break
           case 90:
+            this.minX = this.maxX = 0
+            this.maxY = 0
+            this.minY = this.width - this.longWidth
             break
           case 180:
-            break
-          case 270:
-            break 
-        }
-        if (this.X === 0) {
-          this.minX = this.maxX = 0
-          this.maxY = 0
-          this.minY = this.width - this.longWidth
-
-          // if (this.canvasRotate % 180 === 0 && this.canvasRotate % 360 !== 0) {
-          //   this.minX = 0
-          //   this.maxX = this.longWidth - this.width
-          // }
-
-          if (this.canvasRotate % 270 === 0) {
-            this.minY = 0
-            this.maxY = this.longWidth - this.width
-        }
-            } else {
-          this.minY = this.maxY = 0
-          this.maxX = 0
-          this.minX = this.width - this.longWidth
-
-          if (this.canvasRotate && this.canvasRotate % 180 === 0) {
             this.minX = 0
             this.maxX = this.longWidth - this.width
-            }
+            this.maxY = this.minY = 0
+            break
+          case 270:
+            this.minX = this.maxX = 0
+            this.maxY = this.longWidth - this.width
+            this.minY = 0
+            break 
         }
       },
       /** 图片旋转 */
@@ -402,8 +395,6 @@
         } else {
           if (this.canvasRotate % 180 === 0) this.X = -this.X
         }
-
-
 
         this.setLimit()        // 重新设置图片拖拽的范围
         this.canvasOriginX = this.X  // 原始的坐标
