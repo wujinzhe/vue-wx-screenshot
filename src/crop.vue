@@ -23,17 +23,12 @@
               <span class="angle--bottom--right"></span>
               <svg :width="width" :height="height">
                 <!-- 竖线 -->
-                <!-- <line :x1="0" y1="0" :x2="0" :y2="height" class="border"/> -->
                 <line :x1="width / 3" y1="0" :x2="width / 3" :y2="height - 0.5"/>
                 <line :x1="width / 3 * 2" y1="0" :x2="width / 3 * 2" :y2="height - 0.5"/>
-                <!-- <line :x1="width" y1="0" :x2="width" :y2="height" class="border"/> -->
 
                 <!-- 横线 -->
-                <!-- <line :x1="0" :y1="0" :x2="width" :y2="0" class="border"/> -->
                 <line :x1="0" :y1="height / 3" :x2="width - 0.5" :y2="height / 3"/>
                 <line :x1="0" :y1="height / 3 * 2" :x2="width - 0.5" :y2="height / 3 * 2"/>
-                <!-- <line :x1="0" :y1="height" :x2="width" :y2="height" class="border"/> -->
-
               </svg>
           </div>
           <div class="screenshot--center--right" />
@@ -43,7 +38,7 @@
       <div class="crop__content__rotate" @click="rotate">
         <img src="./rotate.png">
       </div>
-      <p style="color: white;position: fixed; top:0;left: 0;z-index: 1000;">{{ T }}</p>
+      <!-- <p style="color: white;position: fixed; top:0;left: 0;z-index: 1000;">{{ T }}</p> -->
     </div>
     <div class="crop__footer">
       <a @click="cancel">取消</a>
@@ -60,6 +55,11 @@
   const Fraction = algebra.Fraction
   const Expression = algebra.Expression
   const Equation = algebra.Equation
+
+  /** 判断是否为iPhone X手机 */
+  function isIphoneX () {
+    return /iphone/gi.test(navigator.userAgent) && (screen.height == 812 && screen.width == 375)
+  }
 
   function calcEquation (point1, point2, point3, point4) {
     let x, y, k1, k2, cp1, cp2
@@ -96,7 +96,7 @@
     name: 'Crop',
     data () {
       return {
-        image: null, // 需要裁剪的图
+        // image: null, // 需要裁剪的图
         canvasContext: null, // canvas绘画上下文
         canvasWidth: 0,      // canvas的宽度
         canvasHeight: 0,     // canvas的高度
@@ -156,10 +156,10 @@
           transformOrigin: `${this.transformOrigin.X}px ${this.transformOrigin.Y}px`
         }
       },
-      T () {
-        // return JSON.stringify(this.text)
-        return this.type
-      },
+      // T () {
+      //   // return JSON.stringify(this.text)
+      //   return this.type
+      // },
       // vertical 竖图   horizontal  横图
       direction () {
         if (this.canvasCssWidth > this.canvasCssHeight) {
@@ -167,57 +167,22 @@
         }
         return 'vertical'
       },
+      // 边长较长的长度
       longWidth () {
         if (this.canvasCssWidth > this.canvasCssHeight) {
           return this.canvasCssWidth
       }
         return this.canvasCssHeight
       }
-      // canvasTopRight () {
-      //   return {
-      //     X: this.X + this.canvasCssWidth,
-      //     Y: this.Y
-      //   }
-      // },
-      // canvasBottomRight () {
-      //   return {
-      //     X: this.X + this.canvasCssWidth,
-      //     Y: this.Y + this.canvasCssHeight
-      //   }
-      // },
-      // canvasBottomLeft () {
-      //   return {
-      //     X: this.X,
-      //     Y: this.Y + this.canvasCssHeight
-      //   }
-      // },
-      // screenshotTopRight () {
-      //   return {
-      //     X: this.screenshotX + this.width,
-      //     Y: this.screenshotY
-      //   }
-      // },
-      // screenshotBottomRight () {
-      //   return {
-      //     X: this.screenshotX + this.width,
-      //     Y: this.screenshotY + this.height
-      //   }
-      // },
-      // screenshotBottomLeft () {
-      //   return {
-      //     X: this.screenshotX,
-      //     Y: this.screenshotY + this.height
-      //   }
-      // }
     },
-    // watch: {
-    //   /** 旋转触发事件 */
-    //   canvasRotate (val) {
-    //     console.log()
-    //   }
-    // },
     mounted () {
       this.$refs.crop.style.height = document.getElementsByTagName('html')[0].clientHeight + 'px'
+
+      // 兼容iPhone X
+      if (isIphoneX()) {
+        this.$refs.crop.style.paddingBottom = '40px'
+        this.$refs.crop.style.boxSizing = 'border-box'
+      }
     },
     methods: {
       /** 初始化手势库 */
@@ -280,10 +245,13 @@
           this.canvasScale = e.scale * scale
         })
 
+        /**
+         * 暂时图片放大后的移动和裁剪还未完成，所以图片暂时无法放大，最大放大比例为1
+         */
         this.hammer.on('pinchend', e => {
           if (this.type !== 'pinch') return
 
-          if (this.canvasScale > 3) this.canvasScale = 3
+          if (this.canvasScale > 1) this.canvasScale = 1
 
           if (this.canvasScale < 1) this.canvasScale = 1
 
@@ -350,7 +318,7 @@
         this.canvasScale = 1
         this.canvasRotate = 0
       },
-      /** 设置拖拽范围 */
+      /** 设置拖拽范围 （超过了拖拽范围图片会回到边缘位置）*/
       setLimit () {
         let r = this.canvasRotate
 
@@ -390,10 +358,11 @@
         this.X = this.Y
         this.Y = t
 
-        if (this.direction === 'vertical') { // 竖图
-          if (this.canvasRotate % 90 === 0) this.X = -this.X
-        } else {
-          if (this.canvasRotate % 180 === 0) this.X = -this.X
+        if (
+          (this.direction === 'vertical' && this.canvasRotate % 90 === 0) ||  // 竖图
+          (this.direction === 'horizontal' && this.canvasRotate % 180 === 0)  // 横图
+        ) {
+          this.X = -this.X
         }
 
         this.setLimit()        // 重新设置图片拖拽的范围
@@ -405,7 +374,7 @@
       /** 画图 */
       drawImage (picPath) {
         let image = new Image()
-        image.crossOrigin = 'Anonymous'
+        // image.crossOrigin = 'Anonymous'
         image.src = picPath
 
         image.onload = () => {
@@ -415,13 +384,8 @@
           // 再下一次UI渲染后，进行画图
           this.$nextTick(() => {
             this.canvasContext = document.querySelector('#canvas').getContext('2d')
-            this.image = image
-            // 判断是否可以显示图片
-            try {
-              this.canvasContext.drawImage(image, 0, 0)
-            } catch (e) {
-              alert(e)
-            }
+
+            this.canvasContext.drawImage(image, 0, 0)
           })
         }
       },
@@ -449,7 +413,6 @@
             imageData = null // 截图的imageData
 
         try {
-          // alert(document.querySelector('#canvas').toDataURL('image/jpeg', 0.5))
           // 提取出截图的数据  如果是图片的像素有大于canvas的css宽高的，需要乘以 this.canvasWidth / this.canvasCssWidth 这个比例
           imageData = this.canvasContext.getImageData(
             Math.abs(this.X) * this.canvasWidth / this.canvasCssWidth,
@@ -461,7 +424,7 @@
           // 将提取出的数据放到新的canvas中
           // newCanvasCtx.rotate(20 * Math.PI / 180)
           newCanvasCtx.putImageData(imageData, 0, 0)
-          // this.canvasContext.drawImage(this.image, 0, 0)
+
           baseSrc = newCanvas.toDataURL('image/jpeg')
           let image = new Image()
           image.src = baseSrc
@@ -535,10 +498,6 @@
     height: calc(100% - 60px);
     position: relative;
     overflow: hidden;
-  }
-
-  canvas {
-    /* transform-origin: 150px 150px; */
   }
 
   /* 截图框的样式 */

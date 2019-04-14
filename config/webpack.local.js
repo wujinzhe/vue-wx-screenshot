@@ -19,7 +19,13 @@ const WebpackLocalConfig = merge(WebpackBaseConfig, {
     clientLogLevel: 'warning',
     useLocalIp: true, // 使用本地IP
     // open: true, // 默认打开浏览器
-  }
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: 'index.html',
+      filename: 'index.html'
+    })
+  ]
 })
 
 portfinder.basePort = WebpackLocalConfig.devServer.port // 给portfinder设置默认端口

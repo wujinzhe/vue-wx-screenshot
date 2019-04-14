@@ -26,7 +26,10 @@ module.exports = {
       },
       {
         test: /.(png|jpg)$/,
-        loader: 'file-loader'
+        loader: 'url-loader',
+        options: {
+          limit: 1024
+        }
       }
     ]
   },
@@ -38,10 +41,6 @@ module.exports = {
     extensions: ['.js', '.vue']
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: 'index.html',
-      filename: 'index.html'
-    }),
     new VueLoaderPlugin()
   ]
 }
