@@ -1,6 +1,6 @@
 {
   "name": "vue-wx-screenshot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,9 @@
     "type": "git",
     "url": "https://github.com/wujinzhe/vue-wx-screenshot"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "keywords": [],
   "author": "wujinzhe",
   "license": "ISC",
