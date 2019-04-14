@@ -1,4 +1,4 @@
-# vue-screenshot
+# vue-wx-screenshot
 模仿IOS微信的一个vue的截图插件，该插件只要提供一个图片地址，可以完成图片的旋转，平移，缩放（暂未实现），压缩，点击完成按钮后直接将改动后的图片以base64的形式返回，使用简单，轻量，无其他业务的绑定
 
 <div align="center">
@@ -7,7 +7,7 @@
 
 ## 安装
 
-执行```npm i vue-screenshot -S```
+执行```npm i vue-wx-screenshot -S```
 
 ## 引入
 ```HTML

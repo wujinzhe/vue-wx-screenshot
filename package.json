@@ -1,5 +1,5 @@
 {
-  "name": "vue-crop",
+  "name": "vue-wx-screenshot",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,8 +8,10 @@
     "local": "webpack-dev-server --progress --config config/webpack.local.js",
     "build": "webpack --config config/webpack.prod.js"
   },
+  "access": "public",
+  "files": ["dist"],
   "keywords": [],
-  "author": "",
+  "author": "wujinzhe",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.3.4",
