@@ -19,7 +19,7 @@
   @finish="finish" />
 ```
 ```JS
-import { crop } from 'vue-screenshot'
+import { crop } from 'vue-wx-screenshot'
 export default {
   name: 'App',
   components: {
@@ -79,7 +79,7 @@ this.$refs.crop.open(imgUrl)
 
 js部分
 ```JS
-  import { crop } from '@/index.js'
+  import { crop } from 'vue-wx-screenshot'
   export default {
     name: 'App',
     components: {
