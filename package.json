@@ -2,7 +2,7 @@
   "name": "vue-wx-screenshot",
   "version": "1.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "dist/vue-wx-screenshot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "local": "webpack-dev-server --progress --config build/webpack.local.js",
@@ -16,7 +16,12 @@
   "files": [
     "dist"
   ],
-  "keywords": [],
+  "keywords": [
+    "vue",
+    "wx",
+    "screenshot",
+    "component"
+  ],
   "author": "wujinzhe",
   "license": "ISC",
   "devDependencies": {
